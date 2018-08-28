@@ -11,14 +11,21 @@ type Person struct {
 
 var dataPerson = make(map[int]Person)
 
-func Create(name string, age int) string {
+func (Person) Create(name string, age int) string {
 
 	k := len(dataPerson)
 	dataPerson[k+1] = Person{name, age}
 	return "Person was created successfully."
 }
 
-func Retrieve(index int) string {
+func (Person) List() {
+
+	for _, value := range dataPerson {
+		fmt.Println(value)
+	}
+}
+
+func (Person) Retrieve(index int) string {
 
 	if index < 1 {
 		fmt.Println("Not found.")
@@ -28,7 +35,7 @@ func Retrieve(index int) string {
 	return ""
 }
 
-func Update(index int, name string, age int) string {
+func (Person) Update(index int, name string, age int) string {
 
 	if index < 1 {
 		fmt.Println("Not found.")
@@ -39,7 +46,7 @@ func Update(index int, name string, age int) string {
 	return ""
 }
 
-func Delete(index int) string {
+func (Person) Delete(index int) string {
 	if index < 1 {
 		return "Register: Not found."
 	}
@@ -50,25 +57,23 @@ func Delete(index int) string {
 func main() {
 
 	// inserting register
-	fmt.Println(Create("Sean", 50))
-	fmt.Println(Create("ss", 50))
+	p := Person{}
+	fmt.Println(p.Create("Sean", 50))
+	fmt.Println(p.Create("ss", 50))
 
-	// for _, value := range dataPerson {
-	// 	fmt.Println(value)
-	// }
+	// list all
+	p.List()
 
 	// list one
-	Retrieve(1)
+	p.Retrieve(1)
 
 	// updating a register
-	Update(2, "Jhon Doe", 20)
+	p.Update(2, "Jhon Doe", 20)
 
 	// delete one
-	fmt.Println(Delete(1))
+	fmt.Println(p.Delete(1))
 
 	// show all
-	for _, value := range dataPerson {
-		fmt.Println(value)
-	}
+	p.List()
 
 }
