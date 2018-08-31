@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"sync"
 )
 
 type DbInter interface {
@@ -16,18 +17,22 @@ type DbInter interface {
 
 type DataBase struct {
 	data map[int]string
+	mux  sync.Mutex
 }
 
 func (db DataBase) Create(value string) DataBase {
-
+	db.mux.Lock()
 	k := len(db.data)
 	db.data[k+1] = value
 	fmt.Println("Register created successfully.")
+	db.mux.Unlock()
 	return db
 }
 
 func (db DataBase) List() string {
 
+	db.mux.Lock()
+	defer db.mux.Unlock()
 	for index, value := range db.data {
 		fmt.Println(index, value)
 	}
@@ -40,6 +45,8 @@ func (db DataBase) Retrieve(index int) string {
 		fmt.Println("Not found.")
 		return ""
 	}
+	db.mux.Lock()
+	defer db.mux.Unlock()
 	fmt.Println("Retrieve:", db.data[index])
 	return ""
 }
@@ -54,8 +61,10 @@ func (db DataBase) Update(index int, value string) bool {
 		fmt.Println("Not found.")
 		return false
 	}
+	db.mux.Lock()
 	db.data[index] = value
 	fmt.Println("Updated register: ", index, " ", db.data[index])
+	db.mux.Unlock()
 	return true
 }
 
@@ -68,8 +77,10 @@ func (db DataBase) Delete(index int) bool {
 		fmt.Println("Register: Not found.")
 		return false
 	}
+	db.mux.Lock()
 	delete(db.data, index)
 	fmt.Println("Register deleted successfully.")
+	db.mux.Unlock()
 	return true
 }
 
@@ -80,12 +91,12 @@ func (db DataBase) Delete(index int) bool {
 // }
 
 func Open() DataBase {
-	db := DataBase{make(map[int]string)}
+	db := DataBase{data: make(map[int]string)}
 
 	byteValue, _ := ioutil.ReadFile("db.json")
 	err := json.Unmarshal(byteValue, &db.data)
 	if err != nil {
-		// nozzle.printError("opening config file", err.Error())
+		db = DataBase{data: make(map[int]string)}
 	}
 	return db
 
