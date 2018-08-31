@@ -16,11 +16,12 @@ type DataBase struct {
 	data map[int]string
 }
 
-func (db DataBase) Create(value string) string {
+func (db DataBase) Create(value string) bool {
 
 	k := len(db.data)
 	db.data[k+1] = value
-	return "Register created successfully."
+	fmt.Println("Register created successfully.")
+	return true
 }
 
 func (db DataBase) List() string {
@@ -41,15 +42,20 @@ func (db DataBase) Retrieve(index int) string {
 	return ""
 }
 
-func (db DataBase) Update(index int, value string) string {
+func (db DataBase) Update(index int, value string) bool {
 
 	if index < 1 {
 		fmt.Println("Not found.")
-		return ""
+		return false
+	}
+	fmt.Println(db.data[index])
+	if db.data[index] == "" {
+		fmt.Println("Not found.")
+		return false
 	}
 	db.data[index] = value
 	fmt.Println("Updated register: ", index, " ", db.data[index])
-	return ""
+	return true
 }
 
 func (db DataBase) Delete(index int) string {
