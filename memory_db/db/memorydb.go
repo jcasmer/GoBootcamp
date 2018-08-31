@@ -48,7 +48,6 @@ func (db DataBase) Update(index int, value string) bool {
 		fmt.Println("Not found.")
 		return false
 	}
-	fmt.Println(db.data[index])
 	if db.data[index] == "" {
 		fmt.Println("Not found.")
 		return false
@@ -58,12 +57,18 @@ func (db DataBase) Update(index int, value string) bool {
 	return true
 }
 
-func (db DataBase) Delete(index int) string {
+func (db DataBase) Delete(index int) bool {
 	if index < 1 {
-		return "Register: Not found."
+		fmt.Println("Register: Not found.")
+		return false
+	}
+	if db.data[index] == "" {
+		fmt.Println("Register: Not found.")
+		return false
 	}
 	delete(db.data, index)
-	return "Register deleted successfully."
+	fmt.Println("Register deleted successfully.")
+	return true
 }
 
 // func DbM(db DbInter, method string) {

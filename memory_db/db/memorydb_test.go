@@ -26,10 +26,33 @@ func TestUpdate(t *testing.T) {
 	}
 	_ = d.Create(m["key1"])
 	t.Run("Create", func(tt *testing.T) {
-		index := 2
+		index := 1
 		if res := d.Update(index, "{name: \"Sean\", age: 35}"); res != true {
-			tt.Errorf("not found register with index %d", index)
+			tt.Errorf("not found register with index %d to update", index)
 		}
 
 	})
+}
+
+func TestDelete(t *testing.T) {
+	d := New()
+
+	m := map[string]string{
+		"key1": "{name: \"Sean\", age: 50}",
+	}
+	_ = d.Create(m["key1"])
+	t.Run("Delete", func(tt *testing.T) {
+		index := 1
+		if res := d.Delete(index); res != true {
+			tt.Errorf("not found register with index %d to Delete", index)
+		}
+
+	})
+	// t.Run("Delete", func(tt *testing.T) {
+	// 	index := 1
+	// 	if res := d.Delete(index); res != true {
+	// 		tt.Errorf("not found register with index %d to Delete", index)
+	// 	}
+
+	// })
 }
