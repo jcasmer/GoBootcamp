@@ -5,7 +5,7 @@ import (
 )
 
 func TestCreate(t *testing.T) {
-	d := New()
+	d := Open()
 
 	m := map[string]string{
 		"key1": "{name: \"Sean\", age: 50}",
@@ -19,7 +19,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	d := New()
+	d := Open()
 
 	m := map[string]string{
 		"key1": "{name: \"Sean\", age: 50}",
@@ -35,7 +35,7 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	d := New()
+	d := Open()
 
 	m := map[string]string{
 		"key1": "{name: \"Sean\", age: 50}",
