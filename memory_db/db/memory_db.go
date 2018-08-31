@@ -60,49 +60,14 @@ func (db DataBase) Delete(index int) string {
 	return "Register deleted successfully."
 }
 
-func DbM(db DbInter, method string) {
-	if method == "Create" {
-		fmt.Println(db.Create())
-	}
-}
+// func DbM(db DbInter, method string) {
+// 	if method == "Create" {
+// 		fmt.Println(db.Create())
+// 	}
+// }
 
 func New() DataBase {
 	db := DataBase{make(map[int]string)}
 	return db
-
-}
-
-func db() {
-
-	// var db DbInter
-	// inserting register
-	// p := Person{name: "Sean", age: 50}
-	// m := map[string]Person{
-	// 	"key1": Person{name: "Sean", age: 50},
-	// }
-	// out, err := json.Marshal(p)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println(p, string(out), m["key1"])
-	// dbase := DataBase{"prueba", string(out)}
-	// fmt.Println(dbase)
-	// DbM(dbase, "Create")
-	// //fmt.Println(p.Create("ss", 50))
-
-	// // list all
-	// dbase.List()
-
-	// list one
-	//p.Retrieve(1)
-
-	// updating a register
-	//p.Update(2, "Jhon Doe", 20)
-
-	// delete one
-	//fmt.Println(p.Delete(1))
-
-	// show all
-	//p.List()
 
 }
