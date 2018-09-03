@@ -98,6 +98,7 @@ func Open() DataBase {
 	if err != nil {
 		db = DataBase{data: make(map[int]string)}
 	}
+	else 
 	return db
 
 }
@@ -111,13 +112,5 @@ func (db DataBase) Close() bool {
 
 	_ = ioutil.WriteFile("db.json", b, 0644)
 	return true
-	// to append to a file
-	// create the file if it doesn't exists with O_CREATE, Set the file up for read write, add the append flag and set the permission
-	// f, err := os.OpenFile("/var/log/debug-web.log", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0660)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// // write to file, f.Write()
-	// f.Write(b)
 
 }
