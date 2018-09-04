@@ -10,11 +10,14 @@ import (
 )
 
 type DbInter interface {
-	Create() string
+	// Open() DataBase
+	// close()
+	OpenDB() DataBase
+	Create(value string) bool
 	List() string
-	Retrieve() string
-	Update() string
-	Delete() string
+	Retrieve(index int) string
+	Update(index int, value string) bool
+	Delete(index int) bool
 }
 
 type DataBase struct {
@@ -29,6 +32,7 @@ func (db DataBase) Create(value string) bool {
 	if len(db.data) == 0 {
 		db.data[1] = value
 	} else {
+		fmt.Println(db.data, "ssssss")
 		keys := reflect.ValueOf(db.data).MapKeys()
 		ktype := keys[len(keys)-1]
 		k := ktype.Interface().(int)
@@ -100,9 +104,9 @@ func (db DataBase) Delete(index int) bool {
 // 	}
 // }
 
-func Open() DataBase {
+func (db DataBase) OpenDB() DataBase {
 
-	db := DataBase{data: make(map[int]string)}
+	// db = DataBase{data: make(map[int]string)}
 	db.mux.Lock()
 	// db.data = make(map[int]string)
 	fileSize, erro := os.Stat("db.json")
@@ -125,6 +129,10 @@ func Open() DataBase {
 	db.mux.Unlock()
 	return db
 
+}
+
+func Open(db DbInter) DataBase {
+	return db.OpenDB()
 }
 
 func (db DataBase) Close() bool {
