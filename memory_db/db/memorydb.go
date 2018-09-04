@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"reflect"
 	"sync"
 )
 
@@ -20,13 +22,21 @@ type DataBase struct {
 	mux  sync.Mutex
 }
 
-func (db DataBase) Create(value string) DataBase {
+func (db DataBase) Create(value string) bool {
 	db.mux.Lock()
-	k := len(db.data)
-	db.data[k+1] = value
+	// k := len(db.data)
+	// k := db.data[len(db.data)]
+	if len(db.data) == 0 {
+		db.data[1] = value
+	} else {
+		keys := reflect.ValueOf(db.data).MapKeys()
+		ktype := keys[len(keys)-1]
+		k := ktype.Interface().(int)
+		db.data[k+1] = value
+	}
 	fmt.Println("Register created successfully.")
 	db.mux.Unlock()
-	return db
+	return true
 }
 
 func (db DataBase) List() string {
@@ -91,14 +101,28 @@ func (db DataBase) Delete(index int) bool {
 // }
 
 func Open() DataBase {
-	db := DataBase{data: make(map[int]string)}
 
-	byteValue, _ := ioutil.ReadFile("db.json")
-	err := json.Unmarshal(byteValue, &db.data)
-	if err != nil {
-		db = DataBase{data: make(map[int]string)}
+	db := DataBase{data: make(map[int]string)}
+	db.mux.Lock()
+	// db.data = make(map[int]string)
+	fileSize, erro := os.Stat("db.json")
+	if os.IsNotExist(erro) {
+		var by []byte
+		_ = ioutil.WriteFile("db.json", by, 0644)
+	} else {
+		if fileSize.Size() > 0 {
+			byteValue, _ := ioutil.ReadFile("db.json")
+
+			err := json.Unmarshal(byteValue, &db.data)
+			if err != nil {
+				// db.data = make(map[int]string)
+				return DataBase{}
+				// db := DataBase{data: make(map[int]string)}
+				// return false
+			}
+		}
 	}
-	else 
+	db.mux.Unlock()
 	return db
 
 }

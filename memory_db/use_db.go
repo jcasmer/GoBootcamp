@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-
-	db "./db"
 )
 
 type Person struct {
@@ -12,18 +10,22 @@ type Person struct {
 }
 
 func main() {
-	d := db.Open()
+	// d := db.Open()
 
-	_ = d.Create("prueba")
-	fmt.Println(d.List())
+	// _ = d.Create("prueba")
+	// fmt.Println(d.List())
 
-	m := map[string]string{
-		"key1": "{name: \"juan\", age: 40}",
+	m := map[int]Person{
+		1: Person{"daniel", 15},
+		2: Person{"juan", 30},
 	}
-
-	_ = d.Create(m["key1"])
-	fmt.Println(d.List())
-	_ = d.Update(1, "{name: \"Jhon\", age: 50}")
-	fmt.Println(d.List())
-	d.Close()
+	v := make(map[int]string)
+	fmt.Println(m[1])
+	v[1] = {string(m[1].name), string(m[1].age)}
+	fmt.Println(v[1])
+	// _ = d.Create(string(v[1]))
+	// // fmt.Println(d.List())
+	// // _ = d.Update(1, "{name: \"Jhon\", age: 50}")
+	// fmt.Println(d.List())
+	// d.Close()
 }
