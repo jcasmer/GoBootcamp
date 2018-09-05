@@ -49,21 +49,22 @@ func TestUpdate(t *testing.T) {
 	d.Close()
 }
 
-// func TestDelete(t *testing.T) {
-// 	d := Open()
-// 	m := map[string]string{
-// 		"key1": "{name: \"Sean\", age: 50}",
-// 	}
-// 	_ = d.Create(m["key1"])
-// 	t.Run("Delete", func(tt *testing.T) {
-// 		index := 1
-// 		if res := d.Delete(index); res != true {
-// 			tt.Errorf("not found register with index %d to Delete", index)
-// 		}
+func TestDelete(t *testing.T) {
+	bd := DataBase{data: make(map[int]string)}
+	d := Open(bd)
+	m := map[string]string{
+		"key1": "{name: \"Sean\", age: 50}",
+	}
+	_ = d.Create(m["key1"])
+	t.Run("Delete", func(tt *testing.T) {
+		index := 2
+		if res := d.Delete(index); res != true {
+			tt.Errorf("not found register with index %d to Delete", index)
+		}
 
-// 	})
-// 	d.Close()
-// }
+	})
+	d.Close()
+}
 
 // func TestClose(t *testing.T) {
 

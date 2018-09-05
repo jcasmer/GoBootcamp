@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"reflect"
+	"sort"
 	"sync"
 )
 
@@ -26,16 +26,20 @@ type DataBase struct {
 }
 
 func (db DataBase) Create(value string) bool {
+
 	db.mux.Lock()
-	// k := len(db.data)
-	// k := db.data[len(db.data)]
 	if len(db.data) == 0 {
 		db.data[1] = value
 	} else {
-		fmt.Println(db.data, "ssssss")
-		keys := reflect.ValueOf(db.data).MapKeys()
-		ktype := keys[len(keys)-1]
-		k := ktype.Interface().(int)
+		var keyList []int
+		for key := range db.data {
+			keyList = append(keyList, key)
+		}
+		sort.Ints(keyList)
+		// keys := reflect.ValueOf(db.data).MapKeys()
+		// ktype := keys[len(keys)-1]
+		// k := ktype.Interface().(int)
+		k := keyList[len(keyList)-1]
 		db.data[k+1] = value
 	}
 	fmt.Println("Register created successfully.")
