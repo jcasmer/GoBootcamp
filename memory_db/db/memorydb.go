@@ -2,111 +2,113 @@ package db
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sort"
 	"sync"
 )
 
 type DbInter interface {
-	// Open() DataBase
-	// close()
 	OpenDB() DataBase
-	Create(value string) bool
-	List() string
-	Retrieve(index int) string
-	Update(index int, value string) bool
-	Delete(index int) bool
+	CreateWithIndex(index string, value string) error
+	// Create(value string) (string, error)
+	Retrieve(index string) (string, error)
+	Update(index string, value string) error
+	Delete(index string) error
 }
 
 type DataBase struct {
-	data map[int]string
+	data map[string]string
 	mux  sync.Mutex
 }
 
-func (db DataBase) Create(value string) bool {
+func (db DataBase) CreateWithIndex(index string, value string) error {
+	// Método para insertar en la memory db el valor que desea el usuario con la key deseada.
+	// Este método valida que el key ingresado este vacio o disponible para la inserción.
+	// Si no lo esta devuelve el respectivo mensaje de error
 
-	db.mux.Lock()
-	if len(db.data) == 0 {
-		db.data[1] = value
-	} else {
-		var keyList []int
-		for key := range db.data {
-			keyList = append(keyList, key)
-		}
-		sort.Ints(keyList)
-		// keys := reflect.ValueOf(db.data).MapKeys()
-		// ktype := keys[len(keys)-1]
-		// k := ktype.Interface().(int)
-		k := keyList[len(keyList)-1]
-		db.data[k+1] = value
+	_, ok := db.data[index]
+	if ok {
+		return errors.New("No es posible crear el registro con ese indice.")
 	}
-	fmt.Println("Register created successfully.")
-	db.mux.Unlock()
-	return true
+	db.data[index] = value
+	return nil
 }
 
-func (db DataBase) List() string {
+// func (db DataBase) Create(value string) (string, error) {
 
-	db.mux.Lock()
-	defer db.mux.Unlock()
-	for index, value := range db.data {
-		fmt.Println(index, value)
+// 	if db.data[index] != "" {
+// 		return errors.New("No es posible crear el registro con el indice. 0. Verifique el archivo o la información a guardar.")
+// 	}
+// 	if len(db.data) == 0 {
+// 		db.data["1"] = value
+// 		return "1", nil
+// 	}
+// 	var keyList []string
+// 	for key := range db.data {
+// 		keyList = append(keyList, key)
+// 	}
+// 	sort.Strings(keyList)
+// 	// keys := reflect.ValueOf(db.data).MapKeys()
+// 	// ktype := keys[len(keys)-1]
+// 	// k := ktype.Interface().(int)
+// 	k := keyList[len(keyList)-1]
+// 	index := string(int32(k) + 1)
+// 	db.data[index] = value
+
+// 	fmt.Println("Register created successfully.")
+// 	return index, nil
+// }
+
+// func (db DataBase) List() bool {
+
+// 	for index, value := range db.data {
+// 		fmt.Println(index, value)
+// 	}
+// 	return true
+// }
+
+func (db DataBase) Retrieve(index string) (string, error) {
+	// metodo que devuelve el valor de una key dada
+	// si el key/indice no existe devuelve el error
+
+	_, ok := db.data[index]
+	if ok == false {
+		return "", errors.New("NO hay registro con el key indicado")
 	}
-	return ""
+	return db.data[index], nil
 }
 
-func (db DataBase) Retrieve(index int) string {
+func (db DataBase) Update(index string, value string) error {
+	// metodo que actualiza el valor de una key dada
+	// si el key/indice no existe devuelve el error
 
-	if index < 1 {
-		fmt.Println("Not found.")
-		return ""
-	}
-	db.mux.Lock()
-	defer db.mux.Unlock()
-	fmt.Println("Retrieve:", db.data[index])
-	return ""
-}
-
-func (db DataBase) Update(index int, value string) bool {
-
-	if index < 1 {
-		fmt.Println("Not found.")
-		return false
-	}
-	if db.data[index] == "" {
-		fmt.Println("Not found.")
-		return false
+	_, ok := db.data[index]
+	if ok == false {
+		return errors.New("NO hay registro para actualizar con el key indicado")
 	}
 	db.mux.Lock()
 	db.data[index] = value
-	fmt.Println("Updated register: ", index, " ", db.data[index])
 	db.mux.Unlock()
-	return true
+	fmt.Println("Updated register: ", index, " ", db.data[index])
+	return nil
 }
 
-func (db DataBase) Delete(index int) bool {
-	if index < 1 {
-		fmt.Println("Register: Not found.")
-		return false
-	}
-	if db.data[index] == "" {
-		fmt.Println("Register: Not found.")
-		return false
+func (db DataBase) Delete(index string) error {
+	// metodo que actualiza el valor de una key dada
+	// si el key/indice no existe devuelve el error
+
+	_, ok := db.data[index]
+	if ok == false {
+		return errors.New("NO hay registro para eliminar con el key indicado")
 	}
 	db.mux.Lock()
 	delete(db.data, index)
-	fmt.Println("Register deleted successfully.")
 	db.mux.Unlock()
-	return true
+	fmt.Println("Register deleted successfully.")
+	return nil
 }
-
-// func DbM(db DbInter, method string) {
-// 	if method == "Create" {
-// 		fmt.Println(db.Create())
-// 	}
-// }
 
 func (db DataBase) OpenDB() DataBase {
 
@@ -141,7 +143,6 @@ func Open(db DbInter) DataBase {
 
 func (db DataBase) Close() bool {
 
-	// printing out json neatly to demonstrate
 	b, _ := json.MarshalIndent(db.data, "", " ")
 
 	// writing json to file
