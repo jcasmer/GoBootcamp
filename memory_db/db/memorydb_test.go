@@ -1,22 +1,36 @@
 package db
 
 import (
+	"fmt"
 	"testing"
 )
 
-// func TestOpen(t *testing.T) {
-// 	t.Run("Open", func(tt *testing.T) {
-// 		d := Open()
-// 		if len(d.data) == 0 {
-// 			tt.Errorf("Failed to open db. Please check the file")
-// 		}
+var dbName = "db.json"
 
-// 	})
-// }
+func TestClose(t *testing.T) {
+	db := DataBase{data: make(map[string]string)}
+
+	t.Run("Close", func(tt *testing.T) {
+		if res := Close(dbName, db); res != nil {
+			tt.Errorf(res.Error())
+		}
+
+	})
+}
+
+func TestOpen(t *testing.T) {
+	// bd := DataBase{data: make(map[string]string)}
+	t.Run("Open", func(tt *testing.T) {
+		value, res := OpenDB(dbName)
+		if res != nil {
+			tt.Errorf(res.Error())
+		}
+		fmt.Println(value)
+	})
+}
 
 func TestCreate(t *testing.T) {
-	bd := DataBase{data: make(map[string]string)}
-	d := Open(bd)
+	d, _ := OpenDB(dbName)
 	m := map[string]string{
 		"key1": "{name: \"Sean\", age: 40}",
 	}
@@ -27,62 +41,42 @@ func TestCreate(t *testing.T) {
 
 	})
 
-	d.Close()
+	Close(dbName, d)
 }
 
 func TestRetrieve(t *testing.T) {
-	bd := DataBase{data: make(map[string]string)}
-	d := Open(bd)
+	d, _ := OpenDB(dbName)
 	t.Run("Create", func(tt *testing.T) {
-		if _, res := d.Retrieve("key2"); res != nil {
+		value, res := d.Retrieve("key2")
+		if res != nil {
 			tt.Errorf(res.Error())
 		}
+		fmt.Println(value)
 	})
 
-	d.Close()
+	Close(dbName, d)
 }
 
 func TestUpdate(t *testing.T) {
-	bd := DataBase{data: make(map[string]string)}
-	d := Open(bd)
-	// m := map[string]string{
-	// 	"key1": "{name: \"Sean\", age: 30}",
-	// }
-	// _ = d.Create(m["key1"])
+	d, _ := OpenDB(dbName)
 	t.Run("Create", func(tt *testing.T) {
-		index := "key2"
+		index := "key4"
 		if res := d.Update(index, "{name: \"Sean\", age: 35}"); res != nil {
 			tt.Errorf(res.Error())
 		}
 
 	})
 
-	d.Close()
+	Close(dbName, d)
 }
 
-// func TestDelete(t *testing.T) {
-// 	bd := DataBase{data: make(map[int]string)}
-// 	d := Open(bd)
-// 	m := map[string]string{
-// 		"key1": "{name: \"Sean\", age: 50}",
-// 	}
-// 	_ = d.Create(m["key1"])
-// 	t.Run("Delete", func(tt *testing.T) {
-// 		index := "2"
-// 		if res := d.Delete(index); res != true {
-// 			tt.Errorf("not found register with index %d to Delete", index)
-// 		}
-
-// 	})
-// 	d.Close()
-// }
-
-// func TestClose(t *testing.T) {
-
-// 	t.Run("Delete", func(tt *testing.T) {
-// 		if res :=d.Close()(); res != true {
-// 			tt.Errorf("Close error ")
-// 		}
-
-// 	})
-// }
+func TestDelete(t *testing.T) {
+	d, _ := OpenDB(dbName)
+	t.Run("Delete", func(tt *testing.T) {
+		index := "key2"
+		if res := d.Delete(index); res != nil {
+			tt.Errorf(res.Error())
+		}
+	})
+	Close(dbName, d)
+}

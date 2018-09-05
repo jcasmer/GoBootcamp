@@ -10,9 +10,7 @@ import (
 )
 
 type DbInter interface {
-	OpenDB() DataBase
 	CreateWithIndex(index string, value string) error
-	// Create(value string) (string, error)
 	Retrieve(index string) (string, error)
 	Update(index string, value string) error
 	Delete(index string) error
@@ -96,7 +94,7 @@ func (db DataBase) Update(index string, value string) error {
 }
 
 func (db DataBase) Delete(index string) error {
-	// metodo que actualiza el valor de una key dada
+	// metodo que elimina el registro dada una key
 	// si el key/indice no existe devuelve el error
 
 	_, ok := db.data[index]
@@ -110,44 +108,65 @@ func (db DataBase) Delete(index string) error {
 	return nil
 }
 
-func (db DataBase) OpenDB() DataBase {
+func OpenDB(dbName string) (DataBase, error) {
+	// Metodo que permite inicializar la bd.
+	// Verifica que haya un archivo si esta realiza la carga de contenido en bd.data
+	// Si el archivo no existe lo crea y retorna el objeto bd
+	// Si hay errores de lectura o decodificación de la información retorna el error
 
-	// db = DataBase{data: make(map[int]string)}
-	db.mux.Lock()
-	// db.data = make(map[int]string)
-	fileSize, erro := os.Stat("db.json")
+	db := DataBase{data: make(map[string]string)}
+
+	fileSize, erro := os.Stat(dbName)
+	// verificamos existencia.
 	if os.IsNotExist(erro) {
 		var by []byte
-		_ = ioutil.WriteFile("db.json", by, 0644)
+		err := ioutil.WriteFile(dbName, by, 0644)
+		if err != nil {
+			return DataBase{}, err
+		}
 	} else {
 		if fileSize.Size() > 0 {
-			byteValue, _ := ioutil.ReadFile("db.json")
-
-			err := json.Unmarshal(byteValue, &db.data)
+			// leemos el archivo
+			byteValue, err := ioutil.ReadFile(dbName)
 			if err != nil {
-				// db.data = make(map[int]string)
-				return DataBase{}
-				// db := DataBase{data: make(map[int]string)}
-				// return false
+				return DataBase{}, err
+			}
+
+			// hacemos un unmarshal para cargar la info en el puntero de db.data
+			err = json.Unmarshal(byteValue, &db.data)
+			if err != nil {
+				return DataBase{}, err
 			}
 		}
 	}
-	db.mux.Unlock()
-	return db
+
+	return db, nil
 
 }
 
-func Open(db DbInter) DataBase {
-	return db.OpenDB()
-}
+// func Open(db DbInter) DataBase {
+// 	return db.OpenDB()
+// }
 
-func (db DataBase) Close() bool {
+func Close(dbName string, db DataBase) error {
+	// Método que guarda la información una vez se haya validado una conexión existente con la bd.
+	// Retorna errores si se encuentran con los respectivos mensajes
 
-	b, _ := json.MarshalIndent(db.data, "", " ")
+	//se valida si hay la data contiene información
+	if len(db.data) == 0 {
+		return errors.New("No hay conexión con la bd. Por favor conectese a la bd y luego proceda a cerrarla.")
+	}
 
-	// writing json to file
-
-	_ = ioutil.WriteFile("db.json", b, 0644)
-	return true
-
+	b, erro := json.MarshalIndent(db.data, "", " ")
+	//se valida si hay algún error en el encode to json
+	if erro != nil {
+		return errors.New("Verifique el formato de la información. Debe ser (map)")
+	}
+	// escribimos el archivo.
+	err := ioutil.WriteFile(dbName, b, 0644)
+	//se valida si hay algún error en las escritura del archivo
+	if err != nil {
+		return errors.New("Error.Verifique la información del archivo ó si no cuenta con los permisos necesarios para escribir")
+	}
+	return nil
 }
