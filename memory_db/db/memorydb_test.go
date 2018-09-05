@@ -11,7 +11,7 @@ func TestClose(t *testing.T) {
 	db := DataBase{data: make(map[string]string)}
 
 	t.Run("Close", func(tt *testing.T) {
-		if res := Close(dbName, db); res != nil {
+		if res := db.Close(dbName); res != nil {
 			tt.Errorf(res.Error())
 		}
 
@@ -41,7 +41,7 @@ func TestCreate(t *testing.T) {
 
 	})
 
-	Close(dbName, d)
+	d.Close(dbName)
 }
 
 func TestRetrieve(t *testing.T) {
@@ -54,7 +54,7 @@ func TestRetrieve(t *testing.T) {
 		fmt.Println(value)
 	})
 
-	Close(dbName, d)
+	d.Close(dbName)
 }
 
 func TestUpdate(t *testing.T) {
@@ -67,7 +67,7 @@ func TestUpdate(t *testing.T) {
 
 	})
 
-	Close(dbName, d)
+	d.Close(dbName)
 }
 
 func TestDelete(t *testing.T) {
@@ -78,5 +78,5 @@ func TestDelete(t *testing.T) {
 			tt.Errorf(res.Error())
 		}
 	})
-	Close(dbName, d)
+	d.Close(dbName)
 }

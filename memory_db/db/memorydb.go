@@ -27,6 +27,7 @@ func (db DataBase) CreateWithIndex(index string, value string) error {
 	// Si no lo esta devuelve el respectivo mensaje de error
 
 	_, ok := db.data[index]
+	// validamos existencia del key
 	if ok {
 		return errors.New("No es posible crear el registro con ese indice.")
 	}
@@ -72,6 +73,7 @@ func (db DataBase) Retrieve(index string) (string, error) {
 	// si el key/indice no existe devuelve el error
 
 	_, ok := db.data[index]
+	// validamos existencia del key
 	if ok == false {
 		return "", errors.New("NO hay registro con el key indicado")
 	}
@@ -83,6 +85,7 @@ func (db DataBase) Update(index string, value string) error {
 	// si el key/indice no existe devuelve el error
 
 	_, ok := db.data[index]
+	// validamos existencia del key
 	if ok == false {
 		return errors.New("NO hay registro para actualizar con el key indicado")
 	}
@@ -98,6 +101,7 @@ func (db DataBase) Delete(index string) error {
 	// si el key/indice no existe devuelve el error
 
 	_, ok := db.data[index]
+	// validamos existencia del key
 	if ok == false {
 		return errors.New("NO hay registro para eliminar con el key indicado")
 	}
@@ -125,15 +129,19 @@ func OpenDB(dbName string) (DataBase, error) {
 			return DataBase{}, err
 		}
 	} else {
+		// validamos si el archivo no esta vacío para proceder con la lectura y carga de información a db.data
 		if fileSize.Size() > 0 {
 			// leemos el archivo
 			byteValue, err := ioutil.ReadFile(dbName)
+			// validamos si hubo un error
 			if err != nil {
 				return DataBase{}, err
 			}
-
-			// hacemos un unmarshal para cargar la info en el puntero de db.data
+			db.mux.Lock()
+			// hacemos un unmarshal para cargar la info del archivo en el puntero de db.data
 			err = json.Unmarshal(byteValue, &db.data)
+			db.mux.Unlock()
+			// validamos si hubo un error
 			if err != nil {
 				return DataBase{}, err
 			}
@@ -148,7 +156,7 @@ func OpenDB(dbName string) (DataBase, error) {
 // 	return db.OpenDB()
 // }
 
-func Close(dbName string, db DataBase) error {
+func (db DataBase) Close(dbName string) error {
 	// Método que guarda la información una vez se haya validado una conexión existente con la bd.
 	// Retorna errores si se encuentran con los respectivos mensajes
 
