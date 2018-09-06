@@ -9,6 +9,27 @@ import (
 	"sync"
 )
 
+var (
+
+	//ErrNotFound es retornado cuando no existe el indice o el item en la bd
+	ErrNotFound = errors.New("not found")
+
+	// ErrInvalidDataBase es retornado cuando el archivo de la bd es invalida
+	ErrInvalidDataBase = errors.New("invalid database")
+
+	// ErrInvalidFormat es retornado cuando hay un formato inválido
+	ErrInvalidFormat = errors.New("invalid format")
+
+	// ErrPerms es retonado cuando no cuenta con los permisos necesarios
+	ErrPerms = errors.New("unauthorized")
+
+	//ErrDatabaseClosed es retornado cuando la base de datos esta cerrada y se esta tratando de hacer operaciones
+	ErrDatabaseClosed = errors.New("database closed")
+
+	// ErrIndexExists es retornado cuando el indice del objeto a crear ya existe
+	ErrIndexExists = errors.New("index exists")
+)
+
 type DbInter interface {
 	CreateWithIndex(index string, value string) error
 	Retrieve(index string) (string, error)
@@ -18,76 +39,58 @@ type DbInter interface {
 
 type DataBase struct {
 	data map[string]string
-	mux  sync.Mutex
+	mux  sync.RWMutex
+	open bool
 }
 
-func (db DataBase) CreateWithIndex(index string, value string) error {
+func (db *DataBase) CreateWithIndex(index string, value string) error {
 	// Método para insertar en la memory db el valor que desea el usuario con la key deseada.
 	// Este método valida que el key ingresado este vacio o disponible para la inserción.
 	// Si no lo esta devuelve el respectivo mensaje de error
 
+	// validamos que haya conexión con la bd
+	if db.open == false {
+		return ErrDatabaseClosed
+	}
 	_, ok := db.data[index]
 	// validamos existencia del key
 	if ok {
-		return errors.New("No es posible crear el registro con ese indice.")
+		return ErrIndexExists
 	}
 	db.data[index] = value
 	return nil
 }
 
-// func (db DataBase) Create(value string) (string, error) {
-
-// 	if db.data[index] != "" {
-// 		return errors.New("No es posible crear el registro con el indice. 0. Verifique el archivo o la información a guardar.")
-// 	}
-// 	if len(db.data) == 0 {
-// 		db.data["1"] = value
-// 		return "1", nil
-// 	}
-// 	var keyList []string
-// 	for key := range db.data {
-// 		keyList = append(keyList, key)
-// 	}
-// 	sort.Strings(keyList)
-// 	// keys := reflect.ValueOf(db.data).MapKeys()
-// 	// ktype := keys[len(keys)-1]
-// 	// k := ktype.Interface().(int)
-// 	k := keyList[len(keyList)-1]
-// 	index := string(int32(k) + 1)
-// 	db.data[index] = value
-
-// 	fmt.Println("Register created successfully.")
-// 	return index, nil
-// }
-
-// func (db DataBase) List() bool {
-
-// 	for index, value := range db.data {
-// 		fmt.Println(index, value)
-// 	}
-// 	return true
-// }
-
-func (db DataBase) Retrieve(index string) (string, error) {
+func (db *DataBase) Retrieve(index string) (string, error) {
 	// metodo que devuelve el valor de una key dada
 	// si el key/indice no existe devuelve el error
+
+	// validamos que haya conexión con la bd
+	if db.open == false {
+		return "", ErrDatabaseClosed
+	}
 
 	_, ok := db.data[index]
 	// validamos existencia del key
 	if ok == false {
-		return "", errors.New("NO hay registro con el key indicado")
+		return "", ErrNotFound
 	}
 	return db.data[index], nil
 }
 
-func (db DataBase) Update(index string, value string) error {
+func (db *DataBase) Update(index string, value string) error {
 	// metodo que actualiza el valor de una key dada
 	// si el key/indice no existe devuelve el error
+
+	// validamos que haya conexión con la bd
+	if db.open == false {
+		return ErrDatabaseClosed
+	}
 
 	_, ok := db.data[index]
 	// validamos existencia del key
 	if ok == false {
-		return errors.New("NO hay registro para actualizar con el key indicado")
+		return ErrNotFound
 	}
 	db.mux.Lock()
 	db.data[index] = value
@@ -96,14 +99,19 @@ func (db DataBase) Update(index string, value string) error {
 	return nil
 }
 
-func (db DataBase) Delete(index string) error {
+func (db *DataBase) Delete(index string) error {
 	// metodo que elimina el registro dada una key
 	// si el key/indice no existe devuelve el error
+
+	// validamos que haya conexión con la bd
+	if db.open == false {
+		return ErrDatabaseClosed
+	}
 
 	_, ok := db.data[index]
 	// validamos existencia del key
 	if ok == false {
-		return errors.New("NO hay registro para eliminar con el key indicado")
+		return ErrNotFound
 	}
 	db.mux.Lock()
 	delete(db.data, index)
@@ -135,7 +143,7 @@ func OpenDB(dbName string) (DataBase, error) {
 			byteValue, err := ioutil.ReadFile(dbName)
 			// validamos si hubo un error
 			if err != nil {
-				return DataBase{}, err
+				return DataBase{}, ErrInvalidDataBase
 			}
 			db.mux.Lock()
 			// hacemos un unmarshal para cargar la info del archivo en el puntero de db.data
@@ -143,8 +151,9 @@ func OpenDB(dbName string) (DataBase, error) {
 			db.mux.Unlock()
 			// validamos si hubo un error
 			if err != nil {
-				return DataBase{}, err
+				return DataBase{}, ErrInvalidFormat
 			}
+			db.open = true
 		}
 	}
 
@@ -156,25 +165,26 @@ func OpenDB(dbName string) (DataBase, error) {
 // 	return db.OpenDB()
 // }
 
-func (db DataBase) Close(dbName string) error {
+func (db *DataBase) Close(dbName string) error {
 	// Método que guarda la información una vez se haya validado una conexión existente con la bd.
 	// Retorna errores si se encuentran con los respectivos mensajes
-
-	//se valida si hay la data contiene información
-	if len(db.data) == 0 {
-		return errors.New("No hay conexión con la bd. Por favor conectese a la bd y luego proceda a cerrarla.")
+	db.mux.Lock()
+	defer db.mux.Unlock()
+	if db.open == false {
+		return ErrDatabaseClosed
 	}
 
 	b, erro := json.MarshalIndent(db.data, "", " ")
 	//se valida si hay algún error en el encode to json
 	if erro != nil {
-		return errors.New("Verifique el formato de la información. Debe ser (map)")
+		return ErrInvalidFormat
 	}
 	// escribimos el archivo.
 	err := ioutil.WriteFile(dbName, b, 0644)
 	//se valida si hay algún error en las escritura del archivo
 	if err != nil {
-		return errors.New("Error.Verifique la información del archivo ó si no cuenta con los permisos necesarios para escribir")
+		return ErrPerms
 	}
+	db.open = false
 	return nil
 }
