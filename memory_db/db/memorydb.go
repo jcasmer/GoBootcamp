@@ -41,6 +41,7 @@ type DataBase struct {
 	data map[string]string
 	mux  sync.Mutex
 	open bool
+	muxr sync.RWMutex
 }
 
 func (db *DataBase) CreateWithIndex(index string, value string) error {
@@ -49,9 +50,11 @@ func (db *DataBase) CreateWithIndex(index string, value string) error {
 	// Si no lo esta devuelve el respectivo mensaje de error
 
 	// validamos que haya conexión con la bd
-	if db.open == false {
+	db.muxr.RLock()
+	if !db.open {
 		return ErrDatabaseClosed
 	}
+	db.muxr.RUnlock()
 	_, ok := db.data[index]
 	// validamos existencia del key
 	if ok {
@@ -66,13 +69,15 @@ func (db *DataBase) Retrieve(index string) (string, error) {
 	// si el key/indice no existe devuelve el error
 
 	// validamos que haya conexión con la bd
-	if db.open == false {
+	db.muxr.RLock()
+	if !db.open {
 		return "", ErrDatabaseClosed
 	}
+	db.muxr.RUnlock()
 
 	_, ok := db.data[index]
 	// validamos existencia del key
-	if ok == false {
+	if !ok {
 		return "", ErrNotFound
 	}
 	return db.data[index], nil
@@ -83,13 +88,15 @@ func (db *DataBase) Update(index string, value string) error {
 	// si el key/indice no existe devuelve el error
 
 	// validamos que haya conexión con la bd
-	if db.open == false {
+	db.muxr.RLock()
+	if !db.open {
 		return ErrDatabaseClosed
 	}
+	db.muxr.RUnlock()
 
 	_, ok := db.data[index]
 	// validamos existencia del key
-	if ok == false {
+	if !ok {
 		return ErrNotFound
 	}
 	db.mux.Lock()
@@ -104,13 +111,15 @@ func (db *DataBase) Delete(index string) error {
 	// si el key/indice no existe devuelve el error
 
 	// validamos que haya conexión con la bd
-	if db.open == false {
+	db.muxr.RLock()
+	if !db.open {
 		return ErrDatabaseClosed
 	}
+	db.muxr.RUnlock()
 
 	_, ok := db.data[index]
 	// validamos existencia del key
-	if ok == false {
+	if !ok {
 		return ErrNotFound
 	}
 	db.mux.Lock()
@@ -153,7 +162,9 @@ func OpenDB(dbName string) (DataBase, error) {
 			if err != nil {
 				return DataBase{}, ErrInvalidFormat
 			}
+			db.muxr.RLock()
 			db.open = true
+			db.muxr.RUnlock()
 		}
 	}
 
@@ -168,11 +179,11 @@ func OpenDB(dbName string) (DataBase, error) {
 func (db *DataBase) Close(dbName string) error {
 	// Método que guarda la información una vez se haya validado una conexión existente con la bd.
 	// Retorna errores si se encuentran con los respectivos mensajes
-	db.mux.Lock()
-	defer db.mux.Unlock()
-	if db.open == false {
+	db.muxr.RLock()
+	if !db.open {
 		return ErrDatabaseClosed
 	}
+	db.muxr.RUnlock()
 
 	b, erro := json.MarshalIndent(db.data, "", " ")
 	//se valida si hay algún error en el encode to json
@@ -185,6 +196,6 @@ func (db *DataBase) Close(dbName string) error {
 	if err != nil {
 		return ErrPerms
 	}
-	db.open = false
+	db = nil
 	return nil
 }
