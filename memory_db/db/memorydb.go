@@ -39,7 +39,7 @@ type DbInter interface {
 
 type DataBase struct {
 	data map[string]string
-	mux  sync.RWMutex
+	mux  sync.Mutex
 	open bool
 }
 
