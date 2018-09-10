@@ -4,14 +4,17 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"math/rand"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"go_practices/practices/memory_db/db"
 
 	"github.com/gorilla/mux"
 )
 
 var (
-
 	//ErrNotFound es retornado cuando no existe el indice o el item en la bd
 	ErrRequired = errors.New("is required")
 )
@@ -25,8 +28,9 @@ type Articles struct {
 
 // Car struct
 type Carts struct {
-	Id    string `json:"id"`
-	Owner string `json:"owner"`
+	Id      string   `json:"id"`
+	Owner   string   `json:"owner"`
+	Article Articles `json:"articles"`
 }
 
 type CartsArticles struct {
@@ -55,17 +59,24 @@ func createCart(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, error.Error(), http.StatusBadRequest)
 		return
 	}
-	if strings.TrimSpace(cart.Id) == "" {
-		http.Error(w, "id is required", http.StatusBadRequest)
-		return
-	}
+	// if strings.TrimSpace(cart.Id) == "" {
+	// 	http.Error(w, "id is required", http.StatusBadRequest)
+	// 	return
+	// }
 	if strings.TrimSpace(cart.Owner) == "" {
 		http.Error(w, "owner is required", http.StatusBadRequest)
 		return
 	}
 
+	cart.Id = strconv.Itoa(rand.Intn(100000000))
 	cartsA = append(cartsA, cart)
+	d, erro := db.Open(dbName)
+	if erro != nil {
+		http.Error(w, "owner is required", http.StatusBadRequest)
+		return
+	}
 	json.NewEncoder(w).Encode(cart)
+
 }
 
 // Main function
