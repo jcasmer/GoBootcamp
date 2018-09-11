@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"go_practices/practices/memory_db/db"
+	"github.com/jcasmer/GoBootcamp/memory_db/db"
 
 	"github.com/gorilla/mux"
 )
@@ -70,11 +70,22 @@ func createCart(w http.ResponseWriter, r *http.Request) {
 
 	cart.Id = strconv.Itoa(rand.Intn(100000000))
 	cartsA = append(cartsA, cart)
-	d, erro := db.Open(dbName)
+
+	value, _ := json.Marshal(cart)
+
+	d, erro := db.OpenDB(dbName)
+
 	if erro != nil {
-		http.Error(w, "owner is required", http.StatusBadRequest)
+		http.Error(w, erro.Error(), http.StatusBadRequest)
 		return
 	}
+	resul := d.CreateWithIndex(cart.Id, string(value))
+	if resul != nil {
+		http.Error(w, resul.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// d.Close(dbName)
 	json.NewEncoder(w).Encode(cart)
 
 }
@@ -92,5 +103,5 @@ func main() {
 	r.HandleFunc("/carts", createCart).Methods("POST")
 
 	// Start server
-	log.Fatal(http.ListenAndServe(":8003", r))
+	log.Fatal(http.ListenAndServe(":8002", r))
 }
