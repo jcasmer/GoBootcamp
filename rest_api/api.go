@@ -74,7 +74,6 @@ func createCart(w http.ResponseWriter, r *http.Request) {
 	value, _ := json.Marshal(cart)
 
 	d, erro := db.OpenDB(dbName)
-
 	if erro != nil {
 		http.Error(w, erro.Error(), http.StatusBadRequest)
 		return
@@ -85,7 +84,7 @@ func createCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// d.Close(dbName)
+	d.Close(dbName)
 	json.NewEncoder(w).Encode(cart)
 
 }

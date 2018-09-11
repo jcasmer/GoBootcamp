@@ -129,21 +129,20 @@ func (db *DataBase) Delete(index string) error {
 	return nil
 }
 
-func OpenDB(dbName string) (DataBase, error) {
+func OpenDB(dbName string) (*DataBase, error) {
 	// Metodo que permite inicializar la bd.
 	// Verifica que haya un archivo si esta realiza la carga de contenido en bd.data
 	// Si el archivo no existe lo crea y retorna el objeto bd
 	// Si hay errores de lectura o decodificación de la información retorna el error
 
 	db := DataBase{data: make(map[string]string)}
-
 	fileSize, erro := os.Stat(dbName)
 	// verificamos existencia.
 	if os.IsNotExist(erro) {
 		var by []byte
 		err := ioutil.WriteFile(dbName, by, 0644)
 		if err != nil {
-			return DataBase{}, err
+			return &db, err
 		}
 	} else {
 		// validamos si el archivo no esta vacío para proceder con la lectura y carga de información a db.data
@@ -152,22 +151,22 @@ func OpenDB(dbName string) (DataBase, error) {
 			byteValue, err := ioutil.ReadFile(dbName)
 			// validamos si hubo un error
 			if err != nil {
-				return DataBase{}, ErrInvalidDataBase
+				return &db, ErrInvalidDataBase
 			}
 			db.mux.Lock()
 			// hacemos un unmarshal para cargar la info del archivo en el puntero de db.data
-			err = json.Unmarshal(byteValue, &db.data)
+			erro := json.Unmarshal(byteValue, &db.data)
 			db.mux.Unlock()
 			// validamos si hubo un error
-			if err != nil {
-				return DataBase{}, ErrInvalidFormat
+			if erro != nil {
+				return &db, ErrInvalidFormat
 			}
-			db.muxr.RLock()
-			db.open = true
-			db.muxr.RUnlock()
 		}
 	}
-
+	db.muxr.RLock()
+	db.open = true
+	db.muxr.RUnlock()
+	fmt.Println(db)
 	return db, nil
 
 }
