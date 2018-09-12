@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -66,7 +65,6 @@ func (c Carts) ValidateCart() error {
 
 func (a Articles) ValidateArticle() error {
 	//article validations
-	fmt.Println(a)
 	if a.Id == "" {
 		return ErrIdArticleRequired
 	}
@@ -183,15 +181,18 @@ func (s *Service) addArticles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = json.Unmarshal([]byte(car), &cart)
+	found := false
 	// validate the article to add not exists
-	for _, item := range cart.Article {
+	for index, item := range cart.Article {
 		if item.Id == article.Id {
-			http.Error(w, "The article to add already exist", http.StatusNotFound)
-			return
+			cart.Article[index].Quantity++
+			found = true
 		}
 	}
+	if !found {
 
-	cart.Article = append(cart.Article, article)
+		cart.Article = append(cart.Article, article)
+	}
 
 	value, _ := json.Marshal(cart)
 
