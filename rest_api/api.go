@@ -36,14 +36,14 @@ type CartsArticles struct {
 }
 
 type Service struct {
-	dataBase *db.DataBase
+	dataBase db.DbInter
 }
 
 var arcticles []Articles
 var cartsA []Carts
 var dbName = "db.json"
 
-func NewService(db *db.DataBase) *Service {
+func NewService(db db.DbInter) *Service {
 
 	s := Service{dataBase: db}
 	return &s
