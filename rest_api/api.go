@@ -49,6 +49,7 @@ func getCarts(w http.ResponseWriter, r *http.Request) {
 
 // Create single cart
 func createCart(w http.ResponseWriter, r *http.Request) {
+	// create a sinle cart without articles
 	w.Header().Set("Content-Type", "application/json")
 
 	var cart Carts
@@ -95,6 +96,7 @@ func createCart(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCart(w http.ResponseWriter, r *http.Request) {
+	// retrive a specific cart with its articles
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 
