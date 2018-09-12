@@ -207,3 +207,143 @@ func (s *Service) addArticles(w http.ResponseWriter, r *http.Request) {
 	// http. .StatusCreated
 
 }
+
+func (s *Service) changeArticles(w http.ResponseWriter, r *http.Request) {
+	// change the quantity of a specific item in a cart
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+
+	if params["id"] == "" {
+		http.Error(w, "id cart is required", http.StatusBadRequest)
+		return
+	}
+	if params["idItem"] == "" {
+		http.Error(w, "id item is required", http.StatusBadRequest)
+		return
+	}
+
+	var article Articles
+	article.Id = params["idItem"]
+	err := json.NewDecoder(r.Body).Decode(&article)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = article.ValidateArticle()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	// value, _ := json.Marshal(cart)
+
+	var cart Carts
+	car, erro := s.dataBase.Retrieve(params["id"])
+	if erro != nil {
+		http.Error(w, erro.Error(), http.StatusNotFound)
+		return
+	}
+
+	_ = json.Unmarshal([]byte(car), &cart)
+	// validate the article to add not exists
+	for index, item := range cart.Article {
+		if item.Id == article.Id {
+			cart.Article[index].Quantity = article.Quantity
+
+		}
+	}
+	value, _ := json.Marshal(cart)
+
+	resul := s.dataBase.Update(cart.Id, string(value))
+	if resul != nil {
+		http.Error(w, resul.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	// json.NewEncoder(w).Encode(cart)
+	// http. .StatusCreated
+
+}
+
+func (s *Service) deleteArticle(w http.ResponseWriter, r *http.Request) {
+	// delete an item of a specific item in a cart
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+
+	if params["id"] == "" {
+		http.Error(w, "id cart is required", http.StatusBadRequest)
+		return
+	}
+	if params["idItem"] == "" {
+		http.Error(w, "id item is required", http.StatusBadRequest)
+		return
+	}
+
+	// value, _ := json.Marshal(cart)
+
+	var cart Carts
+	car, erro := s.dataBase.Retrieve(params["id"])
+	if erro != nil {
+		http.Error(w, erro.Error(), http.StatusNotFound)
+		return
+	}
+
+	_ = json.Unmarshal([]byte(car), &cart)
+	// validate the article to add not exists
+	for index, item := range cart.Article {
+		if item.Id == params["idItem"] {
+			cart.Article = append(cart.Article[:index], cart.Article[index+1:]...)
+			// delete(cart.Article, index)K
+
+		}
+	}
+	value, _ := json.Marshal(cart)
+
+	resul := s.dataBase.Update(cart.Id, string(value))
+	if resul != nil {
+		http.Error(w, resul.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	// json.NewEncoder(w).Encode(cart)
+	// http. .StatusCreated
+
+}
+
+func (s *Service) deleteAllArticles(w http.ResponseWriter, r *http.Request) {
+	// delete all items of a specific  a cart
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+
+	if params["id"] == "" {
+		http.Error(w, "id cart is required", http.StatusBadRequest)
+		return
+	}
+	// value, _ := json.Marshal(cart)
+
+	var cart Carts
+	car, erro := s.dataBase.Retrieve(params["id"])
+	if erro != nil {
+		http.Error(w, erro.Error(), http.StatusNotFound)
+		return
+	}
+
+	_ = json.Unmarshal([]byte(car), &cart)
+
+	// clear articles
+	cart.Article = nil
+
+	value, _ := json.Marshal(cart)
+
+	resul := s.dataBase.Update(cart.Id, string(value))
+	if resul != nil {
+		http.Error(w, resul.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	// json.NewEncoder(w).Encode(cart)
+	// http. .StatusCreated|
+
+}

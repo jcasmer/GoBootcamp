@@ -18,8 +18,9 @@ func main() {
 	// 	return
 	// }
 	// Start server
-	// defer dataBase.Close("db.json")
+	defer dataBase.Close("db.json")
 	log.Fatal(http.ListenAndServe(":8002", router))
-	_ = dataBase.Close("db.json")
+
+	// _ = dataBase.Close("db.json")
 
 }
