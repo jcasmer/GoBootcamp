@@ -18,9 +18,8 @@ var (
 
 // Articles struct (Model)
 type Articles struct {
-	id    string  `json:"id"`
-	title string  `json:"title"`
-	price float32 `json:"price"`
+	idArticle string `json:"id_article"`
+	Quantity  string `json:"quantity"`
 }
 
 // Car struct
@@ -121,8 +120,74 @@ func getCart(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
+	er := d.Close(dbName)
+	if er != nil {
+		http.Error(w, er.Error(), http.StatusBadRequest)
+		return
+	}
 
 	json.NewEncoder(w).Encode(cart)
+
+}
+
+func addArticles(w http.ResponseWriter, r *http.Request) {
+	// add article to specific cart
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+
+	if params["id"] == "" {
+		http.Error(w, "id cart is required", http.StatusBadRequest)
+		return
+	}
+
+	var article Articles
+	error := json.NewDecoder(r.Body).Decode(&article)
+	if error != nil {
+		http.Error(w, error.Error(), http.StatusBadRequest)
+		return
+	}
+	if strings.TrimSpace(article.idArticle) == "" {
+		http.Error(w, "id article is required", http.StatusBadRequest)
+		return
+	}
+	if strings.TrimSpace(article.Quantity) == "" {
+		http.Error(w, "quantity is required", http.StatusBadRequest)
+		return
+	}
+
+	// value, _ := json.Marshal(cart)
+
+	d, erro := db.OpenDB(dbName)
+	if erro != nil {
+		http.Error(w, erro.Error(), http.StatusBadRequest)
+		return
+	}
+	var cart Carts
+	car, erro := d.Retrieve(params["id"])
+	if erro != nil {
+		http.Error(w, erro.Error(), http.StatusNotFound)
+		return
+	}
+
+	_ = json.Unmarshal([]byte(car), &cart)
+
+	cart.Article = append(cart.Article)
+
+	// resul := d.CreateWithIndex(cart.Id, string(value))
+	// if resul != nil {
+	// 	http.Error(w, resul.Error(), http.StatusBadRequest)
+	// 	return
+	// }
+
+	er := d.Close(dbName)
+	if er != nil {
+		http.Error(w, er.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(cart)
+	// http. .StatusCreated
 
 }
 
@@ -133,8 +198,9 @@ func main() {
 	r := mux.NewRouter()
 
 	// Route handles & endpoints
-	r.HandleFunc("/carts/{id}", getCart).Methods("GET")
 	r.HandleFunc("/carts", createCart).Methods("POST")
+	r.HandleFunc("/carts/{id}", getCart).Methods("GET")
+	r.HandleFunc("/carts/{id}/items", addArticles).Methods("POST")
 
 	// Start server
 	log.Fatal(http.ListenAndServe(":8002", r))
