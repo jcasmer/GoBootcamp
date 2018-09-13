@@ -347,3 +347,27 @@ func (s *Service) deleteAllArticles(w http.ResponseWriter, r *http.Request) {
 	// http. .StatusCreated|
 
 }
+
+func (s *Service) deleteCart(w http.ResponseWriter, r *http.Request) {
+	// delete all items of a specific  a cart
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+
+	if params["id"] == "" {
+		http.Error(w, "id cart is required", http.StatusBadRequest)
+		return
+	}
+	// value, _ := json.Marshal(cart)
+
+	resul := s.dataBase.Delete(params["id"])
+	if resul != nil {
+		http.Error(w, resul.Error(), http.StatusNotFound)
+		return
+	}
+	_ = s.dataBase.Close("db.json")
+
+	w.WriteHeader(http.StatusNoContent)
+	// json.NewEncoder(w).Encode(cart)
+	// http. .StatusCreated|
+
+}
