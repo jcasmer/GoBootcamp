@@ -292,7 +292,7 @@ func (s *Service) deleteArticle(w http.ResponseWriter, r *http.Request) {
 	// validate the article to add not exists
 	for index, item := range cart.Article {
 		if item.Id == params["idItem"] {
-			cart.Article = append(cart.Article[:index], cart.Article[index+1:]...)
+			cart.Article = append(cart.Article[:int(index)], cart.Article[int(index)+1:]...)
 			// delete(cart.Article, index)
 
 		}
