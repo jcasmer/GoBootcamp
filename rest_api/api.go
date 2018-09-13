@@ -293,7 +293,7 @@ func (s *Service) deleteArticle(w http.ResponseWriter, r *http.Request) {
 	for index, item := range cart.Article {
 		if item.Id == params["idItem"] {
 			cart.Article = append(cart.Article[:index], cart.Article[index+1:]...)
-			// delete(cart.Article, index)K
+			// delete(cart.Article, index)
 
 		}
 	}
@@ -349,7 +349,7 @@ func (s *Service) deleteAllArticles(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) deleteCart(w http.ResponseWriter, r *http.Request) {
-	// delete all items of a specific  a cart
+	// delete a specific  a cart
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 
