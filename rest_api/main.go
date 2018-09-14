@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/jcasmer/GoBootcamp/memory_db/db"
+	"github.com/jcasmer/GoBootcamp/rest_api/handler"
 )
 
 // Main function
@@ -12,7 +13,8 @@ func main() {
 
 	// var err error
 	dataBase, _ := db.OpenDB("db.json")
-	router := Router(dataBase)
+	router := handler.Router(dataBase)
+	// service := NewService(dataBase)
 	// if err != nil {
 	// 	http.Error(, err.Error(), http.StatusBadRequest)
 	// 	return

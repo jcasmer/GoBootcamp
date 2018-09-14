@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"github.com/gorilla/mux"
@@ -14,6 +14,7 @@ func Router(db *db.DataBase) *mux.Router {
 	// Route handles & endpoints
 	r.HandleFunc("/carts", service.createCart).Methods("POST")
 	r.HandleFunc("/carts/{id}", service.getCart).Methods("GET")
+	r.HandleFunc("/carts/{id}", service.deleteCart).Methods("DELETE")
 	r.HandleFunc("/carts/{id}/items", service.addArticles).Methods("POST")
 	r.HandleFunc("/carts/{id}/items", service.deleteAllArticles).Methods("DELETE")
 	r.HandleFunc("/carts/{id}/items/{idItem}", service.changeArticles).Methods("PUT")

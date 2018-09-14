@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"encoding/json"
@@ -82,6 +82,13 @@ func (a Articles) ValidateArticle() error {
 	return nil
 }
 
+func ResponseHttp(w http.ResponseWriter, status int, ob interface{}) {
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(ob)
+
+}
+
 // Get all carts
 func (s *Service) getCarts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -118,10 +125,7 @@ func (s *Service) createCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(cart)
-	// http. .StatusCreated
-
+	ResponseHttp(w, http.StatusCreated, cart)
 }
 
 func (s *Service) getCart(w http.ResponseWriter, r *http.Request) {
@@ -146,7 +150,7 @@ func (s *Service) getCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(cart)
+	ResponseHttp(w, http.StatusOK, cart)
 
 }
 
