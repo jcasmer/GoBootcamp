@@ -35,6 +35,7 @@ type DbInter interface {
 	Retrieve(index string) (string, error)
 	Update(index string, value string) error
 	Delete(index string) error
+	Close(index string) error
 }
 
 type DataBase struct {
@@ -166,8 +167,7 @@ func OpenDB(dbName string) (*DataBase, error) {
 	db.muxr.RLock()
 	db.open = true
 	db.muxr.RUnlock()
-	fmt.Println(db)
-	return db, nil
+	return &db, nil
 
 }
 
