@@ -68,7 +68,7 @@ func TestGetCart(t *testing.T) {
 			return
 		}
 		dataBase, _ := db.OpenDB("db.json")
-		service := Router(dataBase)
+		service := NewService(dataBase)
 		handler := http.HandlerFunc(service.GetCart)
 		// service.GetCart(w, r)
 		// res := w.Result()
