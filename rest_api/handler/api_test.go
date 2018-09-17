@@ -1,12 +1,9 @@
 package handler
 
 import (
-	"bytes"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 
 	"github.com/jcasmer/GoBootcamp/memory_db/db"
@@ -61,27 +58,27 @@ func TestGetCart(t *testing.T) {
 
 		// Create a request to pass to our handler. We don't have any query parameters for now, so we'll
 		// pass 'nil' as the third parameter.
-		r, err := http.NewRequest("GET", "carts/19727887", nil)
+		r, err := http.NewRequest("GET", "localhost:8002/carts/{id}", nil)
 		r.Header.Set("Content-Type", "application/json")
-
 		if err != nil {
 			t.Fatal(err)
 			return
 		}
 		// q := url.Values{}
 		// q.Add("id", "19727887")
-		// r.URL.Path = q.Encode()
+		// r.URL.RawQuery = q.Encode()
 		fmt.Println(r.URL.String())
 
 		w := httptest.NewRecorder()
 		w.Header().Set("Content-Type", "application/json")
-
 		dataBase, _ := db.OpenDB("db.json")
+		// router := Router(dataBase)
 		service := NewService(dataBase)
-		service.GetCart(w, r)
-		// handler := http.HandlerFunc(service.GetCart)
 		// service.GetCart(w, r)
-		res := w.Result()
+		// router.ServeHTTP(w, r)
+		// handler := http.HandlerFunc(service.GetCart)
+		service.GetCart(w, r)
+		// res := w.Result()
 
 		// fmt.Println(res)
 
@@ -90,20 +87,20 @@ func TestGetCart(t *testing.T) {
 		// 	t.Fatalf("could not read response: %v", err)
 		// 	return
 		// }
-
+		// Router(dataBase).ServeHTTP(w, r)
 		// handler.ServeHTTP(w, r)
 
 		// Check the status code is what we expect
-		if status := res.StatusCode; status != http.StatusOK {
+		if status := w.Code; status != http.StatusOK {
 			t.Errorf("handler returned wrong status code: got %v want %v",
 				status, http.StatusOK)
 			return
 		}
-		b, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			t.Fatalf("could not read response: %v", err)
-		}
-		d, err := strconv.Atoi(string(bytes.TrimSpace(b)))
-		fmt.Println(w.Code, d)
+		// b, err := ioutil.ReadAll(res.Body)
+		// if err != nil {
+		// 	t.Fatalf("could not read response: %v", err)
+		// }
+		// d, err := strconv.Atoi(string(bytes.TrimSpace(b)))
+		// fmt.Println(w.Code, d)
 	})
 }

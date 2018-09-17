@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -39,16 +40,34 @@ type CartsArticles struct {
 
 type Service struct {
 	dataBase db.DbInter
+	Router   *mux.Router
 }
 
 var arcticles []Articles
 var cartsA []Carts
 var dbName = "db.json"
 
-func NewService(db db.DbInter) *Service {
+func (s *Service) NewService() {
 
-	s := Service{dataBase: db}
-	return &s
+	s.dataBase, _ = db.OpenDB("db.json")
+	s.Router = mux.NewRouter()
+	s.initializeRoutes()
+	// return &s
+}
+
+func (s *Service) Run(addr string) {
+	log.Fatal(http.ListenAndServe(addr, s.Router))
+	defer s.dataBase.Close("db.json")
+}
+
+func (s *Service) initializeRoutes() {
+	s.Router.HandleFunc("/carts", s.CreateCart).Methods("POST")
+	s.Router.HandleFunc("/carts/{id}", s.GetCart).Methods("GET")
+	s.Router.HandleFunc("/carts/{id}", s.deleteCart).Methods("DELETE")
+	s.Router.HandleFunc("/carts/{id}/items", s.AddArticles).Methods("POST")
+	s.Router.HandleFunc("/carts/{id}/items", s.deleteAllArticles).Methods("DELETE")
+	s.Router.HandleFunc("/carts/{id}/items/{idItem}", s.changeArticles).Methods("PUT")
+	s.Router.HandleFunc("/carts/{id}/items/{idItem}", s.deleteArticle).Methods("DELETE")
 }
 
 func (c Carts) ValidateCart() error {
@@ -84,6 +103,7 @@ func (a Articles) ValidateArticle() error {
 
 func ResponseHttp(w http.ResponseWriter, status int, ob interface{}) {
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(ob)
 
@@ -132,7 +152,6 @@ func (s *Service) GetCart(w http.ResponseWriter, r *http.Request) {
 	// retrive a specific cart with its articles
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-
 	if params["id"] == "" {
 		http.Error(w, "id is required", http.StatusBadRequest)
 		return
