@@ -61,20 +61,20 @@ func TestOpen(t *testing.T) {
 // 	})
 // }
 
-// func TestCreate(t *testing.T) {
-// 	d, _ := OpenDB(dbName)
-// 	m := map[string]string{
-// 		"key1": "{name: \"Sean\", age: 40}",
-// 	}
-// 	t.Run("Create", func(tt *testing.T) {
-// 		if res := d.CreateWithIndex("key1", m["key1"]); res != nil {
-// 			tt.Errorf(res.Error())
-// 		}
+func TestCreate(t *testing.T) {
+	d, err := OpenDB("mysql", "root:k4tt14n4**@tcp(172.17.0.4:3306)/GoBootcamp")
+	t.Run("Create", func(tt *testing.T) {
+		if err != nil {
+			tt.Errorf(err.Error())
+			return
+		}
+		if res := d.CreateWithIndex("{name: \"Sean\", age: 40}"); res != nil {
+			tt.Errorf(res.Error())
+		}
 
-// 	})
-
-// 	d.Close(dbName)
-// }
+	})
+	d.Close(dbName)
+}
 
 // func TestCreateCloseDB(t *testing.T) {
 // 	d := DataBase{data: make(map[string]string)}
@@ -156,82 +156,69 @@ func TestRetrieve(t *testing.T) {
 	d.Close(dbName)
 }
 
-// func TestRetrieveFailDb(t *testing.T) {
-// 	// test de actualizar un registro cuando no hay conexión con la bd
-// 	d := DataBase{data: make(map[string]string)}
-// 	t.Run("Retrieve Fail Clos DB", func(tt *testing.T) {
-// 		value, res := d.Retrieve("key1")
-// 		if res != nil {
-// 			tt.Errorf(res.Error())
-// 		}
-// 		fmt.Println(value)
-// 	})
+func TestUpdate(t *testing.T) {
+	// test para actualizar un registro
+	d, err := OpenDB("mysql", "root:k4tt14n4**@tcp(172.17.0.4:3306)/GoBootcamp")
+	t.Run("Update", func(tt *testing.T) {
+		if err != nil {
+			tt.Errorf(err.Error())
+			return
+		}
+		index := "1"
+		if res := d.Update(index, "{name: \"Sean\", age: 34}"); res != nil {
+			tt.Errorf(res.Error())
+		}
 
-// 	d.Close(dbName)
-// }
+	})
+	d.Close(dbName)
+}
 
-// func TestUpdate(t *testing.T) {
-// 	// test para actualizar un registro
-// 	d, _ := OpenDB(dbName)
-// 	t.Run("Update", func(tt *testing.T) {
-// 		index := "key1"
-// 		if res := d.Update(index, "{name: \"Sean\", age: 35}"); res != nil {
-// 			tt.Errorf(res.Error())
-// 		}
+func TestUpdateFail(t *testing.T) {
+	// test para actualizar un registro con un indice inexistente
+	d, err := OpenDB("mysql", "root:k4tt14n4**@tcp(172.17.0.4:3306)/GoBootcamp")
+	t.Run("Update", func(tt *testing.T) {
+		if err != nil {
+			tt.Errorf(err.Error())
+			return
+		}
+		index := "2"
+		if res := d.Update(index, "{name: \"Sean\", age: 34}"); res != nil {
+			tt.Errorf(res.Error())
+		}
 
-// 	})
+	})
+	d.Close(dbName)
+}
 
-// 	d.Close(dbName)
-// }
-// func TestUpdateFail(t *testing.T) {
-// 	// test para actualizar un registro con un indice inexistente
-// 	d, _ := OpenDB(dbName)
-// 	t.Run("Update Fail", func(tt *testing.T) {
-// 		index := "key4"
-// 		if res := d.Update(index, "{name: \"Sean\", age: 35}"); res != nil {
-// 			tt.Errorf(res.Error())
-// 		}
+func TestDeleteFail(t *testing.T) {
+	d, err := OpenDB("mysql", "root:k4tt14n4**@tcp(172.17.0.4:3306)/GoBootcamp")
+	t.Run("Delete Fail", func(tt *testing.T) {
+		if err != nil {
+			tt.Errorf(err.Error())
+			return
+		}
+		index := "2"
+		if res := d.Delete(index); res != nil {
+			tt.Errorf(res.Error())
+		}
+	})
+	d.Close(dbName)
+}
 
-// 	})
-
-// 	d.Close(dbName)
-// }
-
-// func TestUpdateFailDb(t *testing.T) {
-// 	// test de actualizar un registro cuando no hay conexión con la bd
-// 	d := DataBase{data: make(map[string]string)}
-// 	t.Run("Update Fail Close DB", func(tt *testing.T) {
-// 		index := "key4"
-// 		if res := d.Update(index, "{name: \"Sean\", age: 35}"); res != nil {
-// 			tt.Errorf(res.Error())
-// 		}
-
-// 	})
-
-// 	d.Close(dbName)
-// }
-
-// func TestDeleteFail(t *testing.T) {
-// 	d, _ := OpenDB(dbName)
-// 	t.Run("Delete Fail", func(tt *testing.T) {
-// 		index := "key2"
-// 		if res := d.Delete(index); res != nil {
-// 			tt.Errorf(res.Error())
-// 		}
-// 	})
-// 	d.Close(dbName)
-// }
-
-// func TestDelete(t *testing.T) {
-// 	d, _ := OpenDB(dbName)
-// 	t.Run("Delete", func(tt *testing.T) {
-// 		index := "key1"
-// 		if res := d.Delete(index); res != nil {
-// 			tt.Errorf(res.Error())
-// 		}
-// 	})
-// 	d.Close(dbName)
-// }
+func TestDelete(t *testing.T) {
+	d, err := OpenDB("mysql", "root:k4tt14n4**@tcp(172.17.0.4:3306)/GoBootcamp")
+	t.Run("Delete Fail", func(tt *testing.T) {
+		if err != nil {
+			tt.Errorf(err.Error())
+			return
+		}
+		index := "4"
+		if res := d.Delete(index); res != nil {
+			tt.Errorf(res.Error())
+		}
+	})
+	d.Close(dbName)
+}
 
 // func TestDeleteFailDb(t *testing.T) {
 // 	// test de eliminar un registro cuando no hay conexión con la bd

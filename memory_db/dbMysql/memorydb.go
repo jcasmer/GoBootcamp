@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 	"sync"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -33,7 +34,7 @@ var (
 )
 
 type DbInter interface {
-	CreateWithIndex(index string, value string) error
+	CreateWithIndex(value string) error
 	Retrieve(index string) (string, error)
 	Update(index string, value string) error
 	Delete(index string) error
@@ -64,12 +65,18 @@ func (db *DataBase) CreateWithIndex(value string) error {
 		return ErrDatabaseClosed
 	}
 	db.muxr.RUnlock()
-	statement := fmt.Sprintf("INSERT INTO test(data) VALUES('%s'", value)
+	statement := fmt.Sprintf("INSERT INTO tests(data) VALUES('%s')", value)
 	_, err := db.db.Exec(statement)
 
 	if err != nil {
 		return err
 	}
+	data := Data{}
+	err = db.db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&data.id)
+	if err != nil {
+		return err
+	}
+	_, _ = db.Retrieve(strconv.Itoa(data.id))
 
 	return nil
 }
@@ -115,10 +122,13 @@ func (db *DataBase) Update(index string, value string) error {
 		return ErrNotFound
 	}
 	db.mux.Lock()
-	statement = fmt.Sprintf("UPDATE test SET data='%s' WHERE id=%s", value, index)
+	statement = fmt.Sprintf("UPDATE tests SET data='%s' WHERE id=%s", value, index)
 	_, err = db.db.Exec(statement)
 	db.mux.Unlock()
-	return err
+	if err != nil {
+		return ErrInvalidFormat
+	}
+	return nil
 	// fmt.Println("Updated register: ", index, " ", db.data[index])
 	// return nil
 }
@@ -134,16 +144,23 @@ func (db *DataBase) Delete(index string) error {
 	}
 	db.muxr.RUnlock()
 
-	_, ok := db.data[index]
 	// validamos existencia del key
-	if !ok {
+	statement := fmt.Sprintf("SELECT id, data FROM tests WHERE id=%s", index)
+	data := Data{}
+	err := db.db.QueryRow(statement).Scan(&data.id, &data.data)
+	if err != nil {
 		return ErrNotFound
 	}
 	db.mux.Lock()
-	delete(db.data, index)
+	statement = fmt.Sprintf("DELETE FROM tests WHERE id=%s", index)
+	_, err = db.db.Exec(statement)
 	db.mux.Unlock()
-	fmt.Println("Register deleted successfully.")
+	if err != nil {
+		return ErrInvalidFormat
+	}
 	return nil
+	// fmt.Println("Register deleted successfully.")
+	// return nil
 }
 
 func OpenDB(engine, conectionString string) (*DataBase, error) {
