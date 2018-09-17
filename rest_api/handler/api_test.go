@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/jcasmer/GoBootcamp/memory_db/db"
+	"github.com/jcasmer/GoBootcamp/rest_api/handler"
 	// "github.com/jcasmer/GoBootcamp/rest_api/handler"
 )
 
@@ -26,8 +26,8 @@ import (
 // 			t.Fatal(err)
 // 			return
 // 		}
-// 		dataBase, _ := db.OpenDB("db.json")
-// 		service := NewService(dataBase)
+//
+//
 // 		// handler := http.HandlerFunc(service.getCart(w, r))
 // 		service.GetCart(w, r)
 // 		res := w.Result()
@@ -71,12 +71,11 @@ func TestGetCart(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		w.Header().Set("Content-Type", "application/json")
-		dataBase, _ := db.OpenDB("db.json")
-		// router := Router(dataBase)
-		service := NewService(dataBase)
 		// service.GetCart(w, r)
 		// router.ServeHTTP(w, r)
 		// handler := http.HandlerFunc(service.GetCart)
+		service := handler.Service{}
+		service.NewService()
 		service.GetCart(w, r)
 		// res := w.Result()
 
