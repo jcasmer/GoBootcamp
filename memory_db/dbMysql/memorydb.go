@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"strconv"
 	"sync"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -34,7 +33,7 @@ var (
 )
 
 type DbInter interface {
-	CreateWithIndex(value string) error
+	CreateWithIndex(value string) (int, error)
 	Retrieve(index string) (string, error)
 	Update(index string, value string) error
 	Delete(index string) error
@@ -54,7 +53,7 @@ type Data struct {
 	data string
 }
 
-func (db *DataBase) CreateWithIndex(value string) error {
+func (db *DataBase) CreateWithIndex(value string) (int, error) {
 	// Método para insertar en la memory db el valor que desea el usuario con la key deseada.
 	// Este método valida que el key ingresado este vacio o disponible para la inserción.
 	// Si no lo esta devuelve el respectivo mensaje de error
@@ -62,23 +61,24 @@ func (db *DataBase) CreateWithIndex(value string) error {
 	// validamos que haya conexión con la bd
 	db.muxr.RLock()
 	if !db.open {
-		return ErrDatabaseClosed
+		return -1, ErrDatabaseClosed
 	}
 	db.muxr.RUnlock()
 	statement := fmt.Sprintf("INSERT INTO tests(data) VALUES('%s')", value)
 	_, err := db.db.Exec(statement)
 
 	if err != nil {
-		return err
+		return -1, err
 	}
-	data := Data{}
-	err = db.db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&data.id)
+	var id int
+	// data := Data{}
+	err = db.db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&id)
 	if err != nil {
-		return err
+		return -1, err
 	}
-	_, _ = db.Retrieve(strconv.Itoa(data.id))
+	// id, _: = db.Retrieve(strconv.Itoa(data.id))
 
-	return nil
+	return id, nil
 }
 
 func (db *DataBase) Retrieve(index string) (string, error) {

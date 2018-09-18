@@ -68,7 +68,7 @@ func TestCreate(t *testing.T) {
 			tt.Errorf(err.Error())
 			return
 		}
-		if res := d.CreateWithIndex("{name: \"Sean\", age: 40}"); res != nil {
+		if _, res := d.CreateWithIndex("{name: \"Sean\", age: 40}"); res != nil {
 			tt.Errorf(res.Error())
 		}
 
@@ -146,7 +146,7 @@ func TestRetrieve(t *testing.T) {
 			tt.Errorf(err.Error())
 			return
 		}
-		value, res := d.Retrieve("1")
+		value, res := d.Retrieve("11")
 		if res != nil {
 			tt.Errorf(res.Error())
 		}
@@ -164,7 +164,7 @@ func TestUpdate(t *testing.T) {
 			tt.Errorf(err.Error())
 			return
 		}
-		index := "1"
+		index := "8"
 		if res := d.Update(index, "{name: \"Sean\", age: 34}"); res != nil {
 			tt.Errorf(res.Error())
 		}
@@ -212,7 +212,7 @@ func TestDelete(t *testing.T) {
 			tt.Errorf(err.Error())
 			return
 		}
-		index := "4"
+		index := "5"
 		if res := d.Delete(index); res != nil {
 			tt.Errorf(res.Error())
 		}
