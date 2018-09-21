@@ -1,13 +1,19 @@
 package main
 
 import (
-	"github.com/jcasmer/GoBootcamp/api_mysql/handler"
+	"log"
+	"net/http"
+	"github.com/gorilla/mux"
+	"github.com/jcasmer/GoBootcamp/memory_db/dbMysql"
+	"github.com/jcasmer/GoBootcamp/rest_api/handler"
 )
 
 // Main function
 func main() {
 
-	s := handler.Service{}
-	s.NewService()
-	s.Run(":8002")
+	db, _ :=  dbMysql.OpenDB("mysql", "root:k4tt14n4**@tcp(172.17.0.4:3306)/GoBootcamp")
+	s := handler.NewService(db)
+	r := mux.NewRouter()
+	r.PathPrefix("/api").Handler(s)
+	log.Fatal(http.ListenAndServe(":8002", r))
 }

@@ -3,10 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"log"
-	"net/http"
 	"strconv"
-
+	"net/http"
 	"github.com/gorilla/mux"
 	"github.com/jcasmer/GoBootcamp/memory_db/dbMysql"
 )
@@ -37,37 +35,38 @@ type CartsArticles struct {
 	articles map[string]Articles `json:"articles"`
 }
 
-type Service struct {
-	dataBase dbMysql.DbInter
-	Router   *mux.Router
-}
 
 var arcticles []Articles
 var cartsA []Carts
 var dbName = "db.json"
 
-func (s *Service) NewService() {
-
-	s.dataBase, _ = dbMysql.OpenDB("mysql", "root:k4tt14n4**@tcp(172.17.0.4:3306)/GoBootcamp")
-	s.Router = mux.NewRouter()
-	s.initializeRoutes()
-	// return &s
+type Service struct {
+	dataBase dbMysql.DbInter
+	mux.Router
 }
 
-func (s *Service) Run(addr string) {
-	log.Fatal(http.ListenAndServe(addr, s.Router))
-	defer s.dataBase.Close("db.json")
+func NewService(db dbMysql.DbInter) *Service {
+	s := Service{}
+	s.dataBase = db
+	s.HandleFunc("/carts", s.CreateCart).Methods("POST")
+	s.HandleFunc("/carts/{id}", s.GetCart).Methods("GET")
+	s.HandleFunc( "/carts/{id}", s.deleteCart).Methods("DELETE")
+	s.HandleFunc("/carts/{id}/items", s.AddArticles).Methods("POST")
+	s.HandleFunc("/carts/{id}/items", s.deleteAllArticles).Methods("DELETE")
+	s.HandleFunc( "/carts/{id}/items/{idItem}", s.changeArticles).Methods("PUT")
+	s.HandleFunc( "/carts/{id}/items/{idItem}", s.deleteArticle).Methods("DELETE")
+	return &s
 }
 
-func (s *Service) initializeRoutes() {
-	s.Router.HandleFunc("/carts", s.CreateCart).Methods("POST")
-	s.Router.HandleFunc("/carts/{id}", s.GetCart).Methods("GET")
-	s.Router.HandleFunc("/carts/{id}", s.deleteCart).Methods("DELETE")
-	s.Router.HandleFunc("/carts/{id}/items", s.AddArticles).Methods("POST")
-	s.Router.HandleFunc("/carts/{id}/items", s.deleteAllArticles).Methods("DELETE")
-	s.Router.HandleFunc("/carts/{id}/items/{idItem}", s.changeArticles).Methods("PUT")
-	s.Router.HandleFunc("/carts/{id}/items/{idItem}", s.deleteArticle).Methods("DELETE")
-}
+// func InitializeRoutes( s *Service ) {
+// 	s.HandleFunc("/carts", s.CreateCart).Methods("POST")
+// 	s.HandleFunc("/carts/{id}", s.GetCart).Methods("GET")
+// 	s.HandleFunc( "/carts/{id}", s.deleteCart).Methods("DELETE")
+// 	s.HandleFunc("/carts/{id}/items", s.AddArticles).Methods("POST")
+// 	s.HandleFunc("/carts/{id}/items", s.deleteAllArticles).Methods("DELETE")
+// 	s.HandleFunc( "/carts/{id}/items/{idItem}", s.changeArticles).Methods("PUT")
+// 	s.HandleFunc( "/carts/{id}/items/{idItem}", s.deleteArticle).Methods("DELETE")
+// }
 
 func (c Carts) ValidateCart() error {
 	//cart validations
